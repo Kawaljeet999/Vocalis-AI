@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="light dark">
+  <title>Voice Cloning for Pets</title>
+  <link rel="stylesheet" href="static/style.css"/>
+  <link rel="icon" href="https://pngimg.com/uploads/donkey/donkey_PNG11.png"/>
+  <style>
+    .processing-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .processing-message {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      text-align: center;
+      padding: 20px;
+      background: var(--bg-color);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    
+    .action-buttons {
+      display: none; /* Hide share button by default, will be shown after any prediction */
+      margin-top: 15px;
+    }
+    
+    .share-btn {
+      padding: 8px 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    
+    .share-btn:hover {
+      background-color: var(--secondary-color);
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">TEAM G7</div>
+      <div class="theme-toggle">
+        <div class="theme-icons">☀️</div>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <div class="theme-icons">🌙</div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <div class="container">
+      <h1 class="slide-in">Understand Your Pet's Language</h1>
+      <p class="slide-in">Translate pet voices into human phrases instantly!</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="translator-section">
+      <div class="pet-selector">
+        <h3>Select pet to convert into human language</h3>
+        <select id="petType">
+          <option value="dog">Dog</option>
+          <option value="cat">Cat</option>
+          <option value="elephant">Elephant</option>
+          <option value="lion">Lion</option>
+          <option value="horse">Horse</option>
+        </select>
+      </div>
+
+      <div class="input-options-wrapper">
+        <div class="input-options">
+          <div class="option-card" id="recordOption">
+            <h3>Real-time Recording</h3>
+            <div class="visualizer" id="visualizer"></div>
+            <button class="record-btn pulse" id="recordBtn"><span>●</span> Start Recording</button>
+          </div>
+
+          <div class="option-divider">OR</div>
+
+          <div class="option-card" id="uploadOption">
+            <h3>Upload Audio File</h3>
+            <br>
+            <input type="file" id="audioUpload" accept="audio/*" hidden>
+            <label for="audioUpload" class="upload-btn"><span>📁</span> Choose File</label>
+            <div class="file-info" id="fileInfo"></div>
+            <div id="uploadError" style="color: red; font-weight: bold;"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="convert-btn" id="convertBtn">Analyze & Translate</button>
+
+      <div class="processing-container" id="processingContainer">
+        <div class="processing-message">Please wait... analyzing audio</div>
+      </div>
+
+      <div class="result-card fade-in">
+        <div class="pet-image animated-border" id="petImageDiv"></div>
+        <div class="translation-result" id="resultText"></div>
+        <div class="action-buttons" id="actionButtons">
+          <button class="share-btn">Share</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>TEAM G7</h3>
+          <p>Understanding the pet voice easily..</p>
+        </div>
+        <div class="footer-section">
+          <h4>Links</h4>
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#terms">Terms and Conditions</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Made in India, for the world.!</div>
+    </div>
+  </footer>
+
+  <script>
+    let isRecording = false, mediaRecorder, audioChunks = [], audioContext, analyser, canvasCtx, audioBlob = null;
+
+    const animalImages = {
+      dog: "https://placedog.net/500",
+      cat: "https://cdn.pixabay.com/photo/2015/06/03/13/13/cats-796437_960_720.jpg",
+      elephant: "https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg",
+      lion: "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg",
+      horse: "https://tse3.mm.bing.net/th/id/OIP.VTwLHKyYPeMJ-h6dCVSmsAHaE8?pid=Api"
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
+      themeToggle.addEventListener('change', function () {
+        const theme = this.checked ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+      });
+
+      const canvas = document.createElement('canvas');
+      const visualizer = document.getElementById('visualizer');
+      canvas.width = visualizer.offsetWidth;
+      canvas.height = visualizer.offsetHeight;
+      visualizer.appendChild(canvas);
+      canvasCtx = canvas.getContext('2d');
+
+      const recordBtn = document.getElementById('recordBtn');
+      const audioUpload = document.getElementById('audioUpload');
+      const fileInfo = document.getElementById('fileInfo');
+      const uploadError = document.getElementById('uploadError');
+      const convertBtn = document.getElementById('convertBtn');
+      const resultDiv = document.getElementById('resultText');
+      const resultCard = document.querySelector('.result-card');
+      const petImageDiv = document.getElementById('petImageDiv');
+      const processingContainer = document.getElementById('processingContainer');
+      const petSelect = document.getElementById('petType');
+      const actionButtons = document.getElementById('actionButtons');
+
+      // Share button functionality
+      document.querySelector('.share-btn').addEventListener('click', () => {
+        const text = document.getElementById('resultText').textContent;
+        if (navigator.share) {
+          navigator.share({ title: 'Pet Emotion', text, url: window.location.href });
+        } else {
+          alert('Sharing not supported. Copy this:\n' + text);
+        }
+      });
+
+      recordBtn.addEventListener('click', async () => {
+        if (!isRecording) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new AudioContext();
+            analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 2048;
+
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordBtn.innerHTML = '<span>⏹</span> Stop Recording';
+            drawWaveform();
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+              audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              audioChunks = [];
+            };
+          } catch (err) {
+            console.error("Error accessing microphone:", err);
+            alert("Could not access your microphone. Please check your device settings.");
+          }
+        } else {
+          mediaRecorder.stop();
+          isRecording = false;
+          recordBtn.innerHTML = '<span>●</span> Start Recording';
+          if (audioContext) audioContext.close();
+        }
+      });
+
+      function drawWaveform() {
+        if (!isRecording) return;
+        requestAnimationFrame(drawWaveform);
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteTimeDomainData(dataArray);
+
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = "red";
+        canvasCtx.beginPath();
+
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = v * canvas.height / 2;
+          i === 0 ? canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y);
+          x += sliceWidth;
+        }
+
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+      }
+
+      audioUpload.addEventListener('change', e => {
+        const file = e.target.files[0];
+        const selectedAnimal = petSelect.value.toLowerCase();
+        uploadError.textContent = "";
+        fileInfo.textContent = "";
+
+        if (file) {
+          const lowerName = file.name.toLowerCase();
+          if (!lowerName.includes(selectedAnimal)) {
+            uploadError.textContent = `❌ Please select valid audio for: "${selectedAnimal}"`;
+            audioUpload.value = "";
+            audioBlob = null;
+            return;
+          }
+          fileInfo.textContent = `✅ Selected file: ${file.name}`;
+          audioBlob = file;
+        }
+      });
+
+      convertBtn.addEventListener('click', async () => {
+        const selectedAnimal = petSelect.value.toLowerCase();
+        if (!audioBlob) {
+          alert("Please record or upload an audio first.");
+          return;
+        }
+
+        processingContainer.style.display = 'flex';
+        resultCard.classList.remove('visible');
+        actionButtons.style.display = 'none'; // Hide share button when starting new prediction
+
+        const formData = new FormData();
+        const filename = `${selectedAnimal}_${Date.now()}.wav`;
+        formData.append("file", audioBlob, filename);
+        formData.append("animal", selectedAnimal);
+        const isRecorded = audioBlob instanceof Blob && audioBlob.type === "audio/wav" && !audioBlob.name;
+        formData.append("is_recorded", isRecorded ? "true" : "false");
+
+        try {
+          const response = await fetch("/predict/", {
+            method: "POST",
+            body: formData
+          });
+
+          processingContainer.style.display = 'none';
+
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const emotion = result.emotion;
+          const confidence = result.confidence || 0;
+          const phrase = result.phrase || "";
+
+          if (emotion === "unknown audio") {
+            resultDiv.innerHTML = "<strong>Result:</strong> Unknown audio detected. Please try again with valid pet sounds.";
+            resultCard.classList.add('visible');
+            actionButtons.style.display = 'block'; // Show share button even for unknown audio
+            petImageDiv.style.backgroundImage = `url(${animalImages[selectedAnimal] || ""})`;
+          } else {
+            resultCard.classList.add('visible');
+            
+            let resultHTML = `
+              <strong>Emotion:</strong> ${emotion}<br>
+              <strong>Confidence:</strong> ${confidence.toFixed(2)}`;
+              
+            // Add phrase only if it's valid audio
+            if (phrase && emotion !== "unknown") {
+              resultHTML += `<br><strong>What Animal Says:</strong> "${phrase}"`;
+            }
+            
+            resultDiv.innerHTML = resultHTML;
+            petImageDiv.style.backgroundImage = `url(${animalImages[selectedAnimal] || ""})`;
+            actionButtons.style.display = 'block'; // Always show share button after any prediction
+          }
+        } catch (err) {
+          processingContainer.style.display = 'none';
+          resultDiv.innerHTML = "<strong>Error:</strong> Something went wrong. Please try again.";
+          resultCard.classList.add('visible');
+          actionButtons.style.display = 'block'; // Show share button even after errors
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
