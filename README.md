@@ -120,7 +120,7 @@ You can also **fork** the repository to your GitHub account and follow the same 
 
 The application is live and accessible at:
 
-👉 🔗 [Try Vocalis AI Live]((https://vocalis-ai-r9co.onrender.com/))
+👉 🔗 [Try Vocalis AI Live](https://vocalis-ai-r9co.onrender.com/)
 
 You can interact with the full frontend interface, test both upload and real-time audio modes, and view emotion predictions in real-time.
 
