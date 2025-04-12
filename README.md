@@ -122,8 +122,6 @@ The application is live and accessible at:
 
 👉 🔗 [Try Vocalis AI Live](https://vocalis-ai-r9co.onrender.com/)
 
-You can interact with the full frontend interface, test both upload and real-time audio modes, and view emotion predictions in real-time.
-
 > ⚠️ **Note**: The live link may take a few seconds to start due to server spin-up time on free hosting.  
 > Please be patient. For the best experience, consider running the app locally, which offers faster performance.
 
