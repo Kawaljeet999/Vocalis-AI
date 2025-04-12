@@ -122,8 +122,9 @@ The application is live and accessible at:
 
 👉 🔗 [Try Vocalis AI Live](https://vocalis-ai-r9co.onrender.com/)
 
-> ⚠️ **Note**: The live link may take a few seconds to start due to server spin-up time on free hosting.  
-> Please be patient. For the best experience, consider running the app locally, which offers faster performance.
+⚠️ **Note**  
+**The live link may take a few seconds to start due to server spin-up time on free hosting.**  
+**Please be patient. For the best experience, consider running the app locally, which offers faster performance.**
 
 ---
 
