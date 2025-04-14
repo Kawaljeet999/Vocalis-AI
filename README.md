@@ -120,8 +120,7 @@ You can also **fork** the repository to your GitHub account and follow the same 
 
 The application is live and accessible at:
 
-👉 🔗 <a href="https://vocalis-ai-r9co.onrender.com/" target="_blank">Try Vocalis AI Live</a>
-
+👉 🔗 [Try Vocalis AI Live](https://vocalis-ai-r9co.onrender.com/)
 
 > ⚠️ **Note:** **The live link may take a few seconds to start due to server spin-up time on free hosting.**  
 > **Please be patient.** For the best experience, consider running the app locally, which offers **faster performance**.
