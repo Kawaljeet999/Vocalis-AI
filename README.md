@@ -93,7 +93,7 @@ cd Vocalis-AI
 
 # 2️⃣ Create virtual environment (recommended)
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
 
 # 3️⃣ Install dependencies
 pip install -r requirements.txt
