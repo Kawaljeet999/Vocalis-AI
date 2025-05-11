@@ -88,7 +88,7 @@
 
 ```bash
 # 1️⃣ Clone the repository
-git clone https://github.com/your-username/Vocalis-AI.git
+git clone https://github.com/Kawaljeet999/Vocalis-AI.git
 cd Vocalis-AI
 
 # 2️⃣ Create virtual environment (recommended)
